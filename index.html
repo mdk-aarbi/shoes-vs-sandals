@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shoes vs Sandals Classifier</title>
+<meta name="description" content="Deep Learning semester project: a self-built CNN and a MobileNetV2 transfer-learning model that classify a photo as a shoe or a sandal, running in your browser.">
+<style>
+  :root {
+    --bg: #f6f4ef; --surface: #ffffff; --ink: #1d1f1c; --muted: #5f645c; --line: #dedad0;
+    --accent: #2f6f4f; --accent-soft: #e3efe7; --warn: #a3542a; --warn-soft: #f6e7dd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #141613; --surface: #1d201c; --ink: #ecebe5; --muted: #a3a89d; --line: #333830;
+            --accent: #7cc39b; --accent-soft: #1f3328; --warn: #e3a07a; --warn-soft: #3a261b; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 0 16px 64px; }
+  header { padding: 48px 0 24px; border-bottom: 1px solid var(--line); margin-bottom: 32px; }
+  .kicker { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.15; margin: 8px 0 12px; }
+  h2 { font-size: 22px; margin: 48px 0 12px; }
+  p { margin: 0 0 12px; }
+  .lede { color: var(--muted); max-width: 680px; }
+  .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .links a, .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 8px;
+           border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none;
+           font-size: 14px; cursor: pointer; }
+  .links a:hover, .btn:hover { border-color: var(--accent); }
+  .links a.missing { color: var(--muted); border-style: dashed; pointer-events: none; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+  .demo { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 720px) { .demo { grid-template-columns: 1fr; } }
+  .drop { border: 2px dashed var(--line); border-radius: 10px; min-height: 260px; display: grid; place-items: center;
+          text-align: center; padding: 16px; cursor: pointer; overflow: hidden; }
+  .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+  .drop img { max-width: 100%; max-height: 320px; border-radius: 6px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+  .seg button { border: 0; background: transparent; color: var(--ink); padding: 8px 12px; font-size: 14px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .verdict { font-size: 30px; font-weight: 700; margin: 4px 0; }
+  .bar { height: 12px; border-radius: 6px; background: var(--line); overflow: hidden; margin: 8px 0 4px; }
+  .bar > span { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+  .small { font-size: 13px; color: var(--muted); }
+  .note { background: var(--warn-soft); color: var(--ink); border-left: 3px solid var(--warn); padding: 10px 12px;
+          border-radius: 6px; font-size: 14px; margin-top: 12px; }
+  .samples { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; margin-top: 12px; }
+  .samples img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; }
+  .samples img:hover { border-color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+  th { font-size: 13px; color: var(--muted); font-weight: 600; }
+  td.num { font-variant-numeric: tabular-nums; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+  figure { margin: 0; }
+  figure img { width: 100%; border-radius: 8px; border: 1px solid var(--line); background: #fff; }
+  figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  ul { padding-left: 20px; margin: 0 0 12px; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; background: var(--accent-soft);
+         padding: 1px 5px; border-radius: 4px; }
+  pre { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; font-size: 13px; }
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <div class="kicker">Deep Learning semester project &middot; Superior University, Lahore</div>
+  <h1>Shoe or sandal? Two models, one photo.</h1>
+  <p class="lede">An image classifier trained on a dataset I collected myself: a convolutional network built
+    from scratch, and a MobileNetV2 network fine-tuned with transfer learning. Both run directly in your
+    browser, so your photo never leaves your device.</p>
+  <div class="links" id="links"></div>
+</header>
+
+<section aria-labelledby="demo-h">
+  <h2 id="demo-h">Try it</h2>
+  <div class="demo">
+    <div class="card">
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a photo">
+        <div id="dropText">
+          <strong>Drop a photo here</strong><br>
+          <span class="small">or click to choose one. One shoe or sandal per photo works best.</span>
+        </div>
+      </div>
+      <input type="file" id="file" accept="image/*" hidden>
+      <p class="small" style="margin-top:12px">Or try one of the held-out test photos (never used in training):</p>
+      <div class="samples" id="samples"></div>
+    </div>
+    <div class="card">
+      <div class="seg" role="group" aria-label="Model">
+        <button id="mTL" aria-pressed="true">Transfer learning (MobileNetV2)</button>
+        <button id="mCNN" aria-pressed="false">Self-built CNN</button>
+      </div>
+      <div id="status" class="small">Loading model...</div>
+      <div class="verdict" id="verdict">&nbsp;</div>
+      <div class="bar" aria-hidden="true"><span id="barFill"></span></div>
+      <div class="small" id="prob">&nbsp;</div>
+      <div class="note" id="modelNote"></div>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="res-h">
+  <h2 id="res-h">Results</h2>
+  <p>Two held-out test sets: <strong>video frames</strong> from recordings the models never saw, and
+    <strong>single photos</strong> of pairs that were not in training. The single photos are the honest
+    measure of how the website behaves, because that is what people upload.</p>
+  <div class="card">
+    <table>
+      <thead><tr><th>Model</th><th>Video frames (n=25)</th><th>Single photos (n=40)</th></tr></thead>
+      <tbody>
+        <tr><td>Transfer learning, MobileNetV2</td><td class="num">25 / 25 (100%)</td><td class="num">29 / 40 (72.5%)</td></tr>
+        <tr><td>Self-built CNN</td><td class="num">17 / 25 (68%)</td><td class="num">19 / 40 (47.5%)</td></tr>
+      </tbody>
+    </table>
+    <p class="small" style="margin-top:12px">The test sets are small, so one image moves accuracy by 2.5 to 4 points,
+      and repeated training runs vary by a few points. Read these as rough figures.</p>
+  </div>
+  <div class="grid2" style="margin-top:20px">
+    <figure><img src="results/training_curves.png" alt="Training and test accuracy per epoch for both models" loading="lazy">
+      <figcaption>Training curves for both models.</figcaption></figure>
+    <figure><img src="results/confusion_matrices.png" alt="Confusion matrices for both models on both test sets" loading="lazy">
+      <figcaption>Confusion matrices on both test sets.</figcaption></figure>
+  </div>
+  <h3 style="margin-top:28px">What the results mean</h3>
+  <ul>
+    <li><strong>Transfer learning wins clearly.</strong> MobileNetV2 already knows edges, textures and shapes from
+      ImageNet, so a small dataset is enough to teach it the shoe and sandal difference.</li>
+    <li><strong>The self-built CNN did not generalise.</strong> Starting from random weights with about 2,200
+      images, it learned the look of shoe racks and shop shelves rather than footwear, and it is close to chance on
+      single photos.</li>
+    <li><strong>The gap between the two test sets shows the main limitation.</strong> Most training images are frames
+      of racks. Single items are the weaker case, and more single-item photos would help most.</li>
+  </ul>
+</section>
+
+<section aria-labelledby="data-h">
+  <h2 id="data-h">Dataset</h2>
+  <p>Primary dataset, collected for this project: videos recorded at shoe shops and racks, plus single photos
+    contributed by family, friends and colleagues through a consent form. Faces and personal details were
+    excluded, and phone metadata (location, device, time) was stripped.</p>
+  <table>
+    <thead><tr><th>Split</th><th>Shoes</th><th>Sandals</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>Train</td><td class="num">1,175</td><td class="num">1,009</td><td>Frames from 31 + 41 videos, and 53 + 44 single photos</td></tr>
+      <tr><td>Test (video frames)</td><td class="num">13</td><td class="num">12</td><td>One whole video per class, never seen in training</td></tr>
+      <tr><td>Test (single photos)</td><td class="num">20</td><td class="num">20</td><td>Single photos of pairs not in training</td></tr>
+    </tbody>
+  </table>
+  <p class="small" style="margin-top:12px">"Sandals" covers every open style: sandals, chappals, Peshawari chappal,
+    slippers and flip-flops. "Shoes" covers closed shoes: sneakers, joggers, formal shoes, boots and loafers.</p>
+  <p>Video frames were sampled every 0.5 seconds, with blurry and near-duplicate frames removed. Whole videos were
+    kept in either train or test, never both, so test frames are not near-copies of training frames.</p>
+</section>
+
+<section aria-labelledby="method-h">
+  <h2 id="method-h">Method</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="margin-top:0">Preprocessing</h3>
+      <ul>
+        <li>Sideways phone photos corrected from EXIF orientation</li>
+        <li>Resize to 224 &times; 224, scale pixels to the range -1 to 1</li>
+        <li>Training-only augmentation: flips, small rotations, zoom, contrast, brightness</li>
+        <li>Single photos weighted 5&times; a video frame; classes balanced</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Models</h3>
+      <ul>
+        <li><strong>Self-built CNN:</strong> 4 blocks of Conv, BatchNorm, ReLU, MaxPool (32, 64, 128, 128 filters),
+          global average pooling, dropout, sigmoid output. 40 epochs, Adam with cosine learning-rate decay.</li>
+        <li><strong>Transfer learning:</strong> MobileNetV2 pretrained on ImageNet. Stage 1 trains a new head with the
+          base frozen; stage 2 fine-tunes the last 30 layers at learning rate 1e-5.</li>
+        <li>Loss: binary cross-entropy. Output: probability the photo is a shoe.</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:16px">Both trained models, their weight files, the training notebook and a command-line
+    <code>predict.py</code> are in the GitHub repository. Run a prediction with:</p>
+  <pre>pip install -r requirements.txt
+python predict.py test_samples/shoes/shoes_01.jpg --model transfer</pre>
+</section>
+
+<footer>
+  <p>Made by Muhammad Danial Khalid, BSCS, Superior University, Lahore, for the Deep Learning course taught by
+    Dr. Munir Ahmad.</p>
+  <p>AI use: AI assistants (Claude) helped with code, the report and this page, as permitted for the project.
+    All data was collected by the author.</p>
+</footer>
+</main>
+
+<script src="assets/tf.min.js"></script>
+<script>
+// ---- Edit these five links before submitting ----
+const LINKS = {
+  github: "",        // e.g. https://github.com/your-username/shoes-vs-sandals
+  report: "",        // link to the project report
+  presentation: "",  // link to the slides
+  youtube: "",       // link to the YouTube video
+  dataset: ""        // link to the full dataset (Google Drive)
+};
+// -------------------------------------------------
+
+const LABELS = [["github", "GitHub repository"], ["report", "Project report"],
+                ["presentation", "Presentation"], ["youtube", "YouTube video"],
+                ["dataset", "Full dataset"]];
+const linksEl = document.getElementById("links");
+for (const [key, text] of LABELS) {
+  const a = document.createElement("a");
+  a.textContent = text;
+  if (LINKS[key]) { a.href = LINKS[key]; a.target = "_blank"; a.rel = "noopener"; }
+  else { a.className = "missing"; a.textContent = text + " (link coming soon)"; }
+  linksEl.appendChild(a);
+}
+
+const MODELS = {
+  transfer: { path: "web_models/transfer_mobilenetv2/model.json",
+              note: "Recommended. 29 of 40 single test photos correct." },
+  cnn:      { path: "web_models/self_cnn/model.json",
+              note: "Shown for comparison. Near chance on single photos (19 of 40), so expect wrong answers." }
+};
+const cache = {};
+let current = "transfer";
+let lastImg = null;
+
+const $ = id => document.getElementById(id);
+
+async function getModel(key) {
+  if (!cache[key]) cache[key] = tf.loadGraphModel(MODELS[key].path);
+  return cache[key];
+}
+
+function setModel(key) {
+  current = key;
+  $("mTL").setAttribute("aria-pressed", key === "transfer");
+  $("mCNN").setAttribute("aria-pressed", key === "cnn");
+  $("modelNote").textContent = MODELS[key].note;
+  $("status").textContent = "Loading model...";
+  getModel(key).then(() => {
+    $("status").textContent = lastImg ? "" : "Model ready. Choose a photo.";
+    if (lastImg) predict(lastImg);
+  }).catch(err => { $("status").textContent = "Could not load the model: " + err.message; });
+}
+
+async function predict(img) {
+  lastImg = img;
+  const model = await getModel(current);
+  const pShoe = tf.tidy(() => {
+    const x = tf.browser.fromPixels(img).toFloat();
+    const resized = tf.image.resizeBilinear(x, [224, 224], false, true);
+    const input = resized.div(127.5).sub(1).expandDims(0);
+    return model.predict(input).dataSync()[0];
+  });
+  const isShoe = pShoe >= 0.5;
+  const conf = isShoe ? pShoe : 1 - pShoe;
+  $("verdict").textContent = isShoe ? "Shoe" : "Sandal / chappal";
+  $("barFill").style.width = (pShoe * 100).toFixed(1) + "%";
+  $("prob").textContent = "Probability of shoe: " + (pShoe * 100).toFixed(1) + "%  ·  confidence " +
+                          (conf * 100).toFixed(0) + "%";
+  $("status").textContent = conf < 0.65 ? "Low confidence: the model is unsure about this photo." : "";
+  document.body.dataset.lastPrediction = pShoe.toFixed(4);
+}
+
+function showImage(src) {
+  const img = new Image();
+  img.onload = () => {
+    $("drop").innerHTML = "";
+    $("drop").appendChild(img);
+    predict(img);
+  };
+  img.src = src;
+}
+
+function handleFile(f) {
+  if (!f || !f.type.startsWith("image/")) return;
+  showImage(URL.createObjectURL(f));
+}
+
+$("drop").addEventListener("click", () => $("file").click());
+$("drop").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") $("file").click(); });
+$("file").addEventListener("change", e => handleFile(e.target.files[0]));
+$("drop").addEventListener("dragover", e => { e.preventDefault(); $("drop").classList.add("over"); });
+$("drop").addEventListener("dragleave", () => $("drop").classList.remove("over"));
+$("drop").addEventListener("drop", e => { e.preventDefault(); $("drop").classList.remove("over"); handleFile(e.dataTransfer.files[0]); });
+$("mTL").addEventListener("click", () => setModel("transfer"));
+$("mCNN").addEventListener("click", () => setModel("cnn"));
+
+const SAMPLES = ["shoes/shoes_02.jpg", "shoes/shoes_07.jpg", "shoes/shoes_14.jpg", "shoes/shoes_15.jpg",
+                 "shoes/shoes_18.jpg", "sandals/sandals_03.jpg", "sandals/sandals_07.jpg", "sandals/sandals_08.jpg",
+                 "sandals/sandals_18.jpg", "sandals/sandals_20.jpg"];
+for (const s of SAMPLES) {
+  const im = document.createElement("img");
+  im.src = "test_samples/" + s; im.alt = "Test photo " + s; im.loading = "lazy";
+  im.addEventListener("click", () => showImage(im.src));
+  $("samples").appendChild(im);
+}
+
+setModel("transfer");
+</script>
+</body>
+</html>
