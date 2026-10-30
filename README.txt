@@ -3,8 +3,8 @@ Deep Learning semester project, BSCS, Superior University, Lahore
 Author: Muhammad Danial Khalid
 Course teacher: Dr. Munir Ahmad
 
-Live website:      <PASTE VERCEL URL HERE>
-Full dataset:      <PASTE GOOGLE DRIVE LINK HERE>
+Live website:      https://shoes-vs-sandals.vercel.app
+Full dataset:      https://drive.google.com/file/d/1A2PE72WpTZ90VgjiFMs4JroN4JwNBwp7/view?usp=sharing
 Project report:    <PASTE LINK HERE>
 Presentation:      <PASTE LINK HERE>
 YouTube video:     <PASTE LINK HERE>
@@ -26,7 +26,7 @@ Two models were trained on the same self-collected dataset:
 index.html                  The website (deployed on Vercel). Runs both models in the browser.
 assets/tf.min.js            TensorFlow.js 4.22.0, used by the website.
 web_models/                 Both models converted to TensorFlow.js format for the website.
-models/
+models/                     Too large for GitHub. Download models.zip: https://drive.google.com/file/d/1jgtxzA_jALeDtcvq7YvK5q09VirZUDNk/view?usp=sharing
   transfer_mobilenetv2.keras         Full transfer-learning model (architecture + weights)
   transfer_mobilenetv2.weights.h5    Weights only
   self_cnn.keras                     Full self-built CNN (architecture + weights)
