@@ -203,13 +203,14 @@ const LINKS = {
   report: "Project_Report.pdf",
   presentation: "https://claude.ai/artifact/D1Sd7vyEeX8FziUcPZ2KxY",  // link to the slides
   youtube: "https://youtu.be/GZa3aE5Nv6A",       // link to the YouTube video
-  dataset: "https://drive.google.com/file/d/1A2PE72WpTZ90VgjiFMs4JroN4JwNBwp7/view?usp=sharing"        // link to the full dataset (Google Drive)
+  dataset: "https://drive.google.com/file/d/1A2PE72WpTZ90VgjiFMs4JroN4JwNBwp7/view?usp=sharing",        // link to the full dataset (Google Drive)
+  linkedin: "https://lnkd.in/p/dAhw689K"
 };
 // -------------------------------------------------
 
 const LABELS = [["github", "GitHub repository"], ["report", "Project report"],
                 ["presentation", "Presentation"], ["youtube", "YouTube video"],
-                ["dataset", "Full dataset"]];
+                ["dataset", "Full dataset"], ["linkedin", "LinkedIn post"]];
 const linksEl = document.getElementById("links");
 for (const [key, text] of LABELS) {
   const a = document.createElement("a");
