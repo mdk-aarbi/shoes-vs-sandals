@@ -26,12 +26,14 @@ Two models were trained on the same self-collected dataset:
 index.html                  The website (deployed on Vercel). Runs both models in the browser.
 assets/tf.min.js            TensorFlow.js 4.22.0, used by the website.
 web_models/                 Both models converted to TensorFlow.js format for the website.
-models/                     Too large for GitHub. Download models.zip: https://drive.google.com/file/d/1jgtxzA_jALeDtcvq7YvK5q09VirZUDNk/view?usp=sharing
-  transfer_mobilenetv2.keras         Full transfer-learning model (architecture + weights)
-  transfer_mobilenetv2.weights.h5    Weights only
-  self_cnn.keras                     Full self-built CNN (architecture + weights)
-  self_cnn.weights.h5                Weights only
-  classes.json                       Label order and preprocessing rules
+models/                     Final trained weights of both models:
+  self_cnn.weights.h5                       Self-built CNN weights
+  transfer_mobilenetv2.weights.h5.part00-02 Transfer-learning weights, split into 3 parts
+                                            (GitHub's upload page limits file size;
+                                            predict.py joins them automatically)
+  classes.json                              Label order and preprocessing rules
+                            The architectures are defined in predict.py (same as the notebook).
+                            Full saved models (.keras) backup: https://drive.google.com/file/d/1jgtxzA_jALeDtcvq7YvK5q09VirZUDNk/view?usp=sharing
 predict.py                  Command-line prediction for one photo or a whole folder.
 requirements.txt            Python packages for predict.py.
 test_samples/               39 held-out single photos (shoes/ and sandals/) for quick testing.
@@ -54,9 +56,9 @@ Input preprocessing (same in training, predict.py and the website):
 fix EXIF rotation, convert to RGB, resize to 224x224, scale pixels with x / 127.5 - 1.
 Output: one number between 0 and 1 = probability the photo is a shoe (>= 0.5 means shoe).
 
-To load in your own code:
-    import keras
-    model = keras.models.load_model("models/transfer_mobilenetv2.keras")
+To load in your own code (builds the architecture, then loads the trained weights):
+    from predict import load_model
+    model = load_model("transfer")      # or load_model("cnn")
 
 
 4. DATASET
@@ -117,7 +119,7 @@ before publishing), so predict.py on that folder gives a slightly different figu
 -------------------
 Static site, no server code. Vercel serves index.html; the browser loads web_models/ with
 TensorFlow.js and classifies the uploaded photo locally. .vercelignore keeps the large
-.keras/.h5 files and the notebook out of the deployment (they stay on GitHub).
+.h5 weight files and the notebook out of the deployment (they stay on GitHub).
 
 
 8. AI USE DISCLOSURE
