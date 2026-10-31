@@ -5,8 +5,8 @@ Course teacher: Dr. Munir Ahmad
 
 Live website:      https://shoes-vs-sandals.vercel.app
 Full dataset:      https://drive.google.com/file/d/1A2PE72WpTZ90VgjiFMs4JroN4JwNBwp7/view?usp=sharing
-Project report:    <PASTE LINK HERE>
-Presentation:      <PASTE LINK HERE>
+Project report:    https://claude.ai/artifact/UEcmQ2oZbqGacbZrug6JFa
+Presentation:      https://claude.ai/artifact/D1Sd7vyEeX8FziUcPZ2KxY
 YouTube video:     <PASTE LINK HERE>
 
 
