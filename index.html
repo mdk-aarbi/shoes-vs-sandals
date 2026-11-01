@@ -292,9 +292,8 @@ $("drop").addEventListener("drop", e => { e.preventDefault(); $("drop").classLis
 $("mTL").addEventListener("click", () => setModel("transfer"));
 $("mCNN").addEventListener("click", () => setModel("cnn"));
 
-const SAMPLES = ["shoes/shoes_02.jpg", "shoes/shoes_07.jpg", "shoes/shoes_14.jpg", "shoes/shoes_15.jpg",
-                 "shoes/shoes_18.jpg", "sandals/sandals_03.jpg", "sandals/sandals_07.jpg", "sandals/sandals_08.jpg",
-                 "sandals/sandals_18.jpg", "sandals/sandals_20.jpg"];
+const SAMPLES = ["shoes/shoes_02.jpg", "shoes/shoes_14.jpg", "shoes/shoes_17.jpg", "shoes/shoes_19.jpg",
+                 "sandals/sandals_08.jpg", "sandals/sandals_11.jpg", "sandals/sandals_17.jpg", "sandals/sandals_20.jpg"];
 for (const s of SAMPLES) {
   const im = document.createElement("img");
   im.src = "test_samples/" + s; im.alt = "Test photo " + s; im.loading = "lazy";
